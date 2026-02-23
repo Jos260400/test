@@ -11,22 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Crea el PR desde main2 hacia main
-      - name: Create Pull Request
-        id: create_pr
+      - name: Create PR if not exists
         run: |
-          PR_URL=$(gh pr create \
+          gh pr create \
             --title "Auto PR desde main2" \
             --body "PR creado automáticamente" \
             --base main \
-            --head main2)
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            --head main2 || echo "PR ya existe, continuando..."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. Mergea el PR automáticamente
       - name: Merge PR
         run: |
-          gh pr merge main2 --merge --admin
+          gh pr merge main2 --merge --admin --delete-branch=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
