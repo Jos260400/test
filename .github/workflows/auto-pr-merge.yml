@@ -2,8 +2,8 @@ name: Auto PR and Merge
 
 on:
   push:
-    branches-ignore:
-      - main  # Solo actúa en ramas que NO sean main
+    branches:
+      - main2
 
 jobs:
   create-and-merge-pr:
@@ -11,21 +11,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Crea el PR automáticamente
+      # 1. Crea el PR desde main2 hacia main
       - name: Create Pull Request
         id: create_pr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Auto PR desde ${{ github.ref_name }}"
-          body: "PR creado automáticamente"
-          base: main
+        run: |
+          PR_URL=$(gh pr create \
+            --title "Auto PR desde main2" \
+            --body "PR creado automáticamente" \
+            --base main \
+            --head main2)
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 2. Mergea el PR automáticamente
       - name: Merge PR
-        if: steps.create_pr.outputs.pull-request-number != ''
         run: |
-          gh pr merge ${{ steps.create_pr.outputs.pull-request-number }} \
-            --merge --admin
+          gh pr merge main2 --merge --admin
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
