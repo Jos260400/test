@@ -1,0 +1,31 @@
+name: Auto PR and Merge
+
+on:
+  push:
+    branches-ignore:
+      - main  # Solo actúa en ramas que NO sean main
+
+jobs:
+  create-and-merge-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Crea el PR automáticamente
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Auto PR desde ${{ github.ref_name }}"
+          body: "PR creado automáticamente"
+          base: main
+
+      # 2. Mergea el PR automáticamente
+      - name: Merge PR
+        if: steps.create_pr.outputs.pull-request-number != ''
+        run: |
+          gh pr merge ${{ steps.create_pr.outputs.pull-request-number }} \
+            --merge --admin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
